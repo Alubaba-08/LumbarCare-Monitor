@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LumbarCare — Smart Cushion Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Prompt', 'Inter', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <style>
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    body { font-family: 'Prompt', 'Inter', sans-serif; }
+
+    /* ===== LIGHT MODE OVERRIDES (เมื่อเอา class="dark" ออกจาก <html>) ===== */
+    html:not(.dark) body {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) header {
+      background-color: rgba(255, 255, 255, 0.94) !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) footer {
+      border-color: #cbd5e1 !important;
+      color: #64748b !important;
+    }
+    html:not(.dark) .bg-slate-900,
+    html:not(.dark) .bg-slate-900\/90,
+    html:not(.dark) .bg-slate-900\/60 {
+      background-color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    }
+    html:not(.dark) .bg-slate-950,
+    html:not(.dark) .bg-slate-950\/70,
+    html:not(.dark) .bg-slate-950\/60,
+    html:not(.dark) .bg-slate-950\/50 {
+      background-color: #f8fafc !important;
+    }
+    html:not(.dark) .bg-slate-800,
+    html:not(.dark) .bg-slate-800\/70,
+    html:not(.dark) .bg-slate-800\/60 {
+      background-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .hover\:bg-slate-800\/40:hover {
+      background-color: #f1f5f9 !important;
+    }
+    html:not(.dark) .hover\:bg-slate-700:hover {
+      background-color: #cbd5e1 !important;
+    }
+    html:not(.dark) .border-slate-800,
+    html:not(.dark) .border-slate-800\/80,
+    html:not(.dark) .border-slate-800\/60,
+    html:not(.dark) .border-slate-700,
+    html:not(.dark) .border-slate-700\/80 {
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) .divide-slate-800\/70 > :not([hidden]) ~ :not([hidden]),
+    html:not(.dark) .divide-slate-800\/60 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #e2e8f0 !important;
+    }
+
+    /* Text Colors in Light Mode */
+    html:not(.dark) .text-white,
+    html:not(.dark) .text-slate-100,
+    html:not(.dark) .text-slate-200 {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-slate-300 {
+      color: #334155 !important;
+    }
+    html:not(.dark) .text-slate-400 {
+      color: #475569 !important;
+    }
+    html:not(.dark) .text-slate-500 {
+      color: #64748b !important;
+    }
+
+    /* High-Contrast Clinical Accents in Light Mode */
+    html:not(.dark) .text-emerald-400,
+    html:not(.dark) .text-emerald-300 {
+      color: #059669 !important;
+    }
+    html:not(.dark) .text-sky-400,
+    html:not(.dark) .text-sky-300 {
+      color: #0284c7 !important;
+    }
+    html:not(.dark) .text-amber-400,
+    html:not(.dark) .text-amber-300 {
+      color: #d97706 !important;
+    }
+    html:not(.dark) .text-indigo-300 {
+      color: #4f46e5 !important;
+    }
+    html:not(.dark) .text-rose-400,
+    html:not(.dark) .text-rose-300 {
+      color: #e11d48 !important;
+    }
+
+    /* Status Tinted Cards in Light Mode */
+    html:not(.dark) .bg-emerald-950\/25,
+    html:not(.dark) .bg-emerald-950\/30 {
+      background-color: #ecfdf5 !important;
+    }
+    html:not(.dark) .bg-rose-950\/30,
+    html:not(.dark) .bg-rose-950\/40 {
+      background-color: #fff1f2 !important;
+    }
+    html:not(.dark) .bg-amber-950\/35 {
+      background-color: #fffbeb !important;
+    }
+    html:not(.dark) input::placeholder {
+      color: #94a3b8 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col transition-colors duration-200" id="appBody">
+
+  <!-- TOP NAVBAR -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-30 transition-colors duration-200">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <i class="fa-solid fa-notes-medical text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold text-emerald-400 leading-tight">LumbarCare — Smart Cushion Monitor</h1>
+          <p class="text-xs text-slate-400" data-i18n="subtitle">ระบบเก็บข้อมูลแรงกด 4 จุด (FSR) และสัญญาณกล้ามเนื้อหลังส่วนล่าง (AD8232 EMG)</p>
+        </div>
+      </div>
+
+      <!-- Right Controls -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div id="connBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 border border-slate-700 text-slate-300">
+          <span id="connDot" class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <span id="connText">ESP32 Disconnected</span>
+        </div>
+
+        <!-- Language Switcher -->
+        <button onclick="toggleLanguage()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-300 transition cursor-pointer">
+          <i class="fa-solid fa-language text-sm"></i>
+          <span id="langBtnLabel">ภาษา: ไทย (TH)</span>
+        </button>
+
+        <!-- Reset System & New Subject -->
+        <button onclick="openResetModal()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 transition cursor-pointer">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span data-i18n="btnResetSystem">รีเซ็ตระบบ / เปลี่ยนคน</span>
+        </button>
+
+        <!-- Theme Toggle Button -->
+        <button onclick="toggleTheme()" id="themeToggleBtn" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-300 transition cursor-pointer" title="สลับโหมดสว่าง / โหมดมืด">
+          <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center gap-6 text-xs sm:text-sm border-t border-slate-800/60 overflow-x-auto">
+      <button onclick="switchTab('monitor')" id="tab-monitor" class="py-2.5 border-b-2 border-emerald-400 text-emerald-400 font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <span data-i18n="tabMonitor">หน้าติดตามผลเรียลไทม์</span>
+      </button>
+      <button onclick="switchTab('subject')" id="tab-subject" class="py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer">
+        <i class="fa-solid fa-user-pen"></i>
+        <span data-i18n="tabSubject">กรอกชื่อ & ตั้งเวลานั่ง</span>
+      </button>
+      <button onclick="switchTab('search')" id="tab-search" class="py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span data-i18n="tabSearch">ค้นหาประวัติคนไข้</span>
+      </button>
+      <button onclick="switchTab('logs')" id="tab-logs" class="py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span data-i18n="tabLogs">สรุปผลรายบุคคล & ฐานข้อมูล SQLite</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-5">
+
+    <!-- ==================== VIEW 1: LIVE MONITORING ==================== -->
+    <section id="view-monitor" class="space-y-5">
+
+      <!-- TOP 4 KPI CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+        <!-- KPI 1: Sitting Weight Distribution -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between h-[112px]">
+          <div>
+            <p class="text-xs text-slate-400 mb-1" data-i18n="kpi1Title">การกระจายน้ำหนักขณะนั่ง</p>
+            <h2 id="postureStatusText" class="text-lg sm:text-xl font-bold text-slate-200 tabular-nums">รอข้อมูลการนั่ง</h2>
+            <p id="postureBalanceSub" class="text-xs text-slate-400 mt-1 tabular-nums">สมดุลการนั่ง 0.0%</p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <i class="fa-solid fa-scale-balanced text-lg"></i>
+          </div>
+        </div>
+
+        <!-- KPI 2: Lower Back EMG Signal -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between h-[112px]">
+          <div>
+            <p class="text-xs text-slate-400 mb-1" data-i18n="kpi2Title">สัญญาณกล้ามเนื้อหลังล่าง (AD8232)</p>
+            <h2 id="kpiEmgVal" class="text-xl sm:text-2xl font-bold text-slate-100 tabular-nums">0 ADC</h2>
+            <p class="text-xs text-slate-400 mt-1 tabular-nums">
+              <span data-i18n="peakLabel">สูงสุด:</span> <span id="kpiEmgPeak" class="text-rose-400 font-semibold">0 ADC</span>
+              <button onclick="resetPeakOnly()" class="underline text-slate-400 hover:text-white ml-1 cursor-pointer" data-i18n="btnResetShort">(รีเซ็ต)</button>
+            </p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+            <i class="fa-solid fa-wave-square text-lg"></i>
+          </div>
+        </div>
+
+        <!-- KPI 3: Active Subject Name -->
+        <div class="bg-slate-900/90 border border-sky-500/30 rounded-2xl p-4 flex items-center justify-between h-[112px]">
+          <div class="min-w-0 pr-2">
+            <p class="text-xs text-sky-400 font-medium mb-1" data-i18n="kpi3Title">ผู้ที่กำลังเก็บข้อมูลขณะนี้</p>
+            <h2 id="kpiSubjectName" class="text-lg sm:text-xl font-bold text-white truncate">ยังไม่ระบุชื่อผู้ทดสอบ</h2>
+            <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
+              <span id="kpiSubjectNote" class="truncate">คลิกเพื่อกรอกชื่อผู้ทดสอบ</span>
+              <button onclick="openResetModal()" class="text-sky-400 hover:underline shrink-0 cursor-pointer" data-i18n="btnEditName">[แก้ไข]</button>
+            </p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+            <i class="fa-solid fa-user-check text-lg"></i>
+          </div>
+        </div>
+
+        <!-- KPI 4: Fixed Countdown Timer -->
+        <div id="timerKpiCard" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between h-[112px]">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-400 mb-0.5" data-i18n="kpi4Title">เวลาที่เหลือรอบปัจจุบัน</p>
+              <h2 id="kpiCountdownText" class="text-xl sm:text-2xl font-bold text-indigo-300 tabular-nums">10:00 นาที</h2>
+            </div>
+            <button id="btnStopNow" onclick="stopRecordingEarly()" class="hidden px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-[11px] font-semibold cursor-pointer">
+              <i class="fa-solid fa-stop mr-1"></i><span data-i18n="btnStopNow">หยุดก่อนเวลา</span>
+            </button>
+          </div>
+          <div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-1">
+              <div id="timerProgressBar" class="h-full bg-indigo-500 transition-all duration-500" style="width: 100%"></div>
+            </div>
+            <p id="kpiTimerSub" class="text-[11px] text-slate-400 tabular-nums">ตั้งเวลาไว้ 10 นาที · บันทึกอัตโนมัติทุก 10 วินาที</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOWER 2-COLUMN GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- LEFT COLUMN (4 COLS): 4x FSR SEAT & LUMBAR PRESSURE MAP -->
+        <div class="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-border-all text-emerald-400"></i>
+                <h3 class="font-semibold text-sm sm:text-base" data-i18n="fsrMapTitle">แผนผังแรงกดเบาะผู้ป่วย</h3>
+              </div>
+              <span class="text-[11px] px-2.5 py-1 rounded-md bg-slate-800 text-slate-400 border border-slate-700">12-bit · 0–4095</span>
+            </div>
+
+            <!-- LUMBAR PAD -->
+            <p class="text-[11px] uppercase tracking-wider text-slate-400 text-center mb-2" data-i18n="lumbarPadLabel">พนักพิงหลังส่วนล่าง (LUMBAR PAD)</p>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div id="box-fsr3" class="rounded-xl bg-slate-800/70 border border-slate-700/80 p-3.5 text-center transition-colors">
+                <p class="text-xs text-slate-400 mb-1" data-i18n="fsr3Name">หลังล่างซ้าย (FSR3)</p>
+                <p id="val-fsr3" class="text-lg font-bold text-slate-100 tabular-nums">0 ADC</p>
+                <p id="pct-fsr3" class="text-xs text-slate-400 tabular-nums">0%</p>
+              </div>
+              <div id="box-fsr4" class="rounded-xl bg-slate-800/70 border border-slate-700/80 p-3.5 text-center transition-colors">
+                <p class="text-xs text-slate-400 mb-1" data-i18n="fsr4Name">หลังล่างขวา (FSR4)</p>
+                <p id="val-fsr4" class="text-lg font-bold text-slate-100 tabular-nums">0 ADC</p>
+                <p id="pct-fsr4" class="text-xs text-slate-400 tabular-nums">0%</p>
+              </div>
+            </div>
+
+            <!-- SEAT PAD -->
+            <p class="text-[11px] uppercase tracking-wider text-slate-400 text-center mb-2" data-i18n="seatPadLabel">เบาะรองนั่ง (ISCHIAL / SEAT PAD)</p>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div id="box-fsr1" class="rounded-xl bg-slate-800/70 border border-slate-700/80 p-3.5 text-center transition-colors">
+                <p class="text-xs text-slate-400 mb-1" data-i18n="fsr1Name">ก้นซ้าย (FSR1)</p>
+                <p id="val-fsr1" class="text-lg font-bold text-slate-100 tabular-nums">0 ADC</p>
+                <p id="pct-fsr1" class="text-xs text-slate-400 tabular-nums">0%</p>
+              </div>
+              <div id="box-fsr2" class="rounded-xl bg-slate-800/70 border border-slate-700/80 p-3.5 text-center transition-colors">
+                <p class="text-xs text-slate-400 mb-1" data-i18n="fsr2Name">ก้นขวา (FSR2)</p>
+                <p id="val-fsr2" class="text-lg font-bold text-slate-100 tabular-nums">0 ADC</p>
+                <p id="pct-fsr2" class="text-xs text-slate-400 tabular-nums">0%</p>
+              </div>
+            </div>
+
+            <!-- BALANCE SUMMARY -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
+                <p class="text-[11px] text-slate-400" data-i18n="seatBalLabel">สมดุลก้นซ้าย-ขวา</p>
+                <p id="seatBalText" class="text-xs font-semibold text-emerald-400 mt-1 tabular-nums">0% · ยังไม่มีแรงกด</p>
+              </div>
+              <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
+                <p class="text-[11px] text-slate-400" data-i18n="backBalLabel">สมดุลหลังล่างซ้าย-ขวา</p>
+                <p id="backBalText" class="text-xs font-semibold text-slate-300 mt-1 tabular-nums">0% · ยังไม่มีแรงกด</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECORDING STATUS BOX -->
+          <div id="recStatusBox" class="rounded-xl bg-slate-800/60 border border-slate-700 p-3.5 flex items-center gap-3">
+            <div id="recStatusIconBox" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+              <i id="recStatusIcon" class="fa-solid fa-pause"></i>
+            </div>
+            <div>
+              <p id="recStatusTitle" class="text-xs font-bold text-slate-300">สถานะการเก็บข้อมูล: STANDBY</p>
+              <p class="text-[11px] text-slate-400" id="recSubjectSub">กรอกชื่อและเลือกเวลาเพื่อเริ่มบันทึก</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN (8 COLS): EMG ONLY CHART + NORMAL/STRAIN STATUS BOX -->
+        <div class="lg:col-span-8 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-chart-line text-rose-400"></i>
+                  <h3 class="font-semibold text-sm sm:text-base" data-i18n="emgChartTitle">กราฟสัญญาณความตึงกล้ามเนื้อหลังล่าง (เฉพาะ EMG - AD8232)</h3>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5" data-i18n="emgChartSub">แสดงผลเฉพาะสัญญาณไฟฟ้ากล้ามเนื้อจาก AD8232 Electrode Pad แบบเรียลไทม์</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-300 border border-rose-500/30 font-medium">AD8232 EMG Only</span>
+                <span class="text-[11px] px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">10Hz RMS</span>
+              </div>
+            </div>
+
+            <div class="relative w-full h-[270px] sm:h-[300px]">
+              <canvas id="emgOnlyChart"></canvas>
+            </div>
+          </div>
+
+          <!-- BOTTOM EMG NUMERIC + NORMAL / STRAIN STATUS PANEL -->
+          <div id="emgConditionCard" class="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-950/25 p-4 transition-all duration-200">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div id="emgStateIconBox" class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                  <i id="emgStateIcon" class="fa-solid fa-circle-check text-xl"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400" data-i18n="emgLiveBoxLabel">ค่าสัญญาณ EMG ปัจจุบัน & สถานะกล้ามเนื้อ</p>
+                  <div class="flex flex-wrap items-baseline gap-3 mt-0.5">
+                    <span id="emgBoxNumeric" class="text-2xl sm:text-3xl font-bold text-white tabular-nums">0 ADC</span>
+                    <span id="emgStateBadge" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      อยู่ในช่วงปกติ (Normal)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Threshold Control -->
+              <div class="flex flex-col sm:items-end gap-1 text-xs">
+                <span class="text-slate-400" data-i18n="thresholdLabel">เกณฑ์ตัดสินอาการเกร็ง (RMS / ความต่าง):</span>
+                <div class="flex items-center gap-2">
+                  <button onclick="adjustThreshold(-5)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold cursor-pointer">-</button>
+                  <span id="thresholdValDisplay" class="px-3 py-1 rounded-lg bg-slate-950 border border-slate-800 font-semibold text-amber-300 tabular-nums">350 ADC</span>
+                  <button onclick="adjustThreshold(5)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold cursor-pointer">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: SUBJECT REGISTRATION PAGE ==================== -->
+    <section id="view-subject" class="hidden max-w-2xl mx-auto">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-11 h-11 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <i class="fa-solid fa-user-plus text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-white" data-i18n="regPageTitle">ลงทะเบียนผู้ที่กำลังเก็บข้อมูล & กำหนดเวลานั่ง</h2>
+            <p class="text-xs text-slate-400" data-i18n="regPageSub">แนะนำ 10 นาที สำหรับสังเกตอาการล้าของกล้ามเนื้อหลังและการถ่ายน้ำหนักขณะนั่ง</p>
+          </div>
+        </div>
+
+        <form onsubmit="submitSubjectForm(event, 'page')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5" data-i18n="inputNameLabel">ชื่อ-สกุล หรือ รหัสผู้เข้าร่วม (เช่น P01 - สมชาย ใจดี) *</label>
+            <input type="text" id="pageSubjectInput" required data-i18n-placeholder="phSubjectInput" placeholder="ระบุชื่อหรือรหัสผู้ทดสอบ..."
+              class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-sky-400 focus:outline-none text-sm text-white" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5" data-i18n="durationSelectLabel">กำหนดระยะเวลานั่งเก็บข้อมูล (หยุดบันทึกอัตโนมัติเมื่อครบเวลา) *</label>
+            <select id="pageDurationSelect" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-sky-400 focus:outline-none text-sm text-white">
+              <option value="0.5" data-i18n="durOpt05">30 วินาที (ทดสอบด่วน / คัดกรองเร็ว)</option>
+              <option value="5" data-i18n="durOpt5">5 นาที (คัดกรองเบื้องต้น / ผู้ป่วยปวดเฉียบพลัน)</option>
+              <option value="10" selected data-i18n="durOpt10">10 นาที (แนะนำ — มาตรฐานประเมินท่านั่งทางคลินิก)</option>
+              <option value="15" data-i18n="durOpt15">15 นาที (สังเกตอาการล้าของกล้ามเนื้อระยะยาว)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5" data-i18n="inputNoteLabel">รายละเอียดเพิ่มเติม / ท่านั่งที่ทดสอบ (ไม่บังคับ)</label>
+            <input type="text" id="pageNoteInput" data-i18n-placeholder="phNoteInput" placeholder="เช่น นั่งทำงานปกติ / พนักพิงระดับ 1"
+              class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-sky-400 focus:outline-none text-sm text-white" />
+          </div>
+
+          <div class="pt-2 flex flex-wrap items-center gap-3">
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm flex items-center gap-2 transition cursor-pointer">
+              <i class="fa-solid fa-play"></i>
+              <span data-i18n="btnSaveAndReset">เริ่มจับเวลา & บันทึกข้อมูลใหม่</span>
+            </button>
+            <button type="button" onclick="switchTab('monitor')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition cursor-pointer" data-i18n="btnBackMonitor">
+              กลับหน้าติดตามผล
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: PATIENT SEARCH & HISTORY ==================== -->
+    <section id="view-search" class="hidden space-y-5">
+      <!-- Search Box Card -->
+      <div class="bg-slate-900 border border-sky-500/30 rounded-2xl p-5 sm:p-6 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+              <i class="fa-solid fa-user-doctor text-lg"></i>
+            </div>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-white" data-i18n="searchTitle">ค้นหาประวัติการตรวจและผลสรุปรายบุคคล</h2>
+              <p class="text-xs text-slate-400" data-i18n="searchSub">พิมพ์ชื่อหรือรหัสคนไข้ หรือคลิกเลือกรายชื่อด้านล่างเพื่อดูข้อมูลสรุปและบันทึกย้อนหลังทั้งหมด</p>
+            </div>
+          </div>
+        </div>
+
+        <form onsubmit="handlePatientSearchSubmit(event)" class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="patientSearchInput" data-i18n-placeholder="phSearchPatient" placeholder="พิมพ์ชื่อคนไข้ที่ต้องการค้นหา เช่น นาย A, ฟ้า, P01..."
+              class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-sky-400 focus:outline-none text-sm text-white" />
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm flex items-center gap-2 transition cursor-pointer">
+              <i class="fa-solid fa-search"></i>
+              <span data-i18n="btnSearchPatient">ค้นหาข้อมูล</span>
+            </button>
+            <button type="button" onclick="clearPatientSearch()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition cursor-pointer" data-i18n="btnClearSearch">
+              ล้างค่า
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick-Select Patient Chips -->
+        <div class="mt-4 pt-3 border-t border-slate-800/80">
+          <p class="text-[11px] text-slate-400 mb-2" data-i18n="quickChipsLabel">รายชื่อผู้ทดสอบที่มีในฐานข้อมูล (คลิกเพื่อดูข้อมูลทันที):</p>
+          <div id="quickPatientChips" class="flex flex-wrap gap-2">
+            <span class="text-xs text-slate-500" data-i18n="loadingNames">กำลังโหลดรายชื่อ...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Results Area -->
+      <div id="patientSearchEmptyState" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-10 text-center">
+        <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 mx-auto mb-3">
+          <i class="fa-solid fa-folder-open text-xl"></i>
+        </div>
+        <p class="text-sm font-medium text-slate-300" data-i18n="searchEmptyTitle">กรอกชื่อคนไข้หรือคลิกเลือกรายชื่อด้านบน</p>
+        <p class="text-xs text-slate-500 mt-1" data-i18n="searchEmptySub">ระบบจะดึงผลสรุปสมดุลแรงกด ค่ากล้ามเนื้อ EMG และประวัติการวัดทั้งหมดของคนไข้รายนั้นขึ้นมาแสดง</p>
+      </div>
+
+      <div id="patientSearchResults" class="hidden space-y-5">
+        <!-- Matched Patient Summary Cards -->
+        <div id="searchSummaryCards" class="space-y-4"></div>
+
+        <!-- Matched Patient Raw History Table -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 id="searchHistoryTitle" class="text-sm sm:text-base font-bold text-white">ประวัติการตรวจย้อนหลัง</h3>
+              <p class="text-xs text-slate-400" data-i18n="searchHistorySub">แสดงรายการข้อมูลทั้งหมดที่บันทึกไว้ในฐานข้อมูลของคนไข้รายนี้ (สูงสุด 500 แถวล่าสุด)</p>
+            </div>
+            <button onclick="exportSearchedPatientCsv()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-2 cursor-pointer">
+              <i class="fa-solid fa-file-csv"></i>
+              <span data-i18n="btnExportPatientCsv">ดาวน์โหลดประวัติคนนี้ (CSV)</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto max-h-[460px] overflow-y-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-slate-900 z-10">
+                <tr class="border-b border-slate-800 text-slate-400">
+                  <th class="py-2.5 px-3">ID</th>
+                  <th class="py-2.5 px-3" data-i18n="colTime">เวลาบันทึก</th>
+                  <th class="py-2.5 px-3" data-i18n="colSubject">ผู้ทดสอบ</th>
+                  <th class="py-2.5 px-3" data-i18n="colNote">หมายเหตุ</th>
+                  <th class="py-2.5 px-3" data-i18n="colFsr1">FSR1 (ก้นซ้าย)</th>
+                  <th class="py-2.5 px-3" data-i18n="colFsr2">FSR2 (ก้นขวา)</th>
+                  <th class="py-2.5 px-3" data-i18n="colFsr3">FSR3 (หลังซ้าย)</th>
+                  <th class="py-2.5 px-3" data-i18n="colFsr4">FSR4 (หลังขวา)</th>
+                  <th class="py-2.5 px-3 text-rose-400">EMG (AD8232)</th>
+                  <th class="py-2.5 px-3" data-i18n="colStatus">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="searchLogsTableBody" class="divide-y divide-slate-800/60 tabular-nums"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: PARTICIPANT SUMMARY + RAW SQLITE LOGS ==================== -->
+    <section id="view-logs" class="hidden space-y-5">
+
+      <!-- PART A: INDIVIDUAL PARTICIPANT CLINICAL SUMMARY TABLE -->
+      <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-white" data-i18n="summaryTitle">สรุปผลการนั่งและสัญญาณกล้ามเนื้อแยกตามรายบุคคล</h2>
+              <p class="text-xs text-slate-400" data-i18n="summarySub">คำนวณค่าเฉลี่ยสมดุลแรงกดและเปอร์เซ็นต์อาการเกร็งกล้ามเนื้อตลอดรอบการนั่งของแต่ละคนอัตโนมัติ (คลิกที่ชื่อเพื่อดูประวัติละเอียด)</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="fetchParticipantSummary()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 flex items-center gap-2 cursor-pointer">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span data-i18n="btnRefresh">รีเฟรช</span>
+            </button>
+            <button onclick="exportSummaryCsv()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-2 cursor-pointer">
+              <i class="fa-solid fa-file-excel"></i>
+              <span data-i18n="btnExportSummary">ดาวน์โหลดตารางสรุป (CSV)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                <th class="py-3 px-3" data-i18n="thSubject">ผู้ทดสอบ (Subject)</th>
+                <th class="py-3 px-3" data-i18n="thDuration">เวลาที่นั่งจริง / เป้าหมาย</th>
+                <th class="py-3 px-3" data-i18n="thAvgBalance">สมดุลก้นเฉลี่ย</th>
+                <th class="py-3 px-3" data-i18n="thPostureRatio">สัดส่วนท่านั่ง (สมดุล / เอียงซ้าย / เอียงขวา)</th>
+                <th class="py-3 px-3" data-i18n="thAvgFsr">แรงกดเฉลี่ย (FSR 1, 2, 3, 4)</th>
+                <th class="py-3 px-3 text-rose-400" data-i18n="thAvgEmg">EMG เฉลี่ย / สูงสุด</th>
+                <th class="py-3 px-3 text-amber-300" data-i18n="thStrainPct">สัดส่วนกล้ามเนื้อเกร็ง (%)</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody" class="divide-y divide-slate-800/70 tabular-nums">
+              <tr><td colspan="7" class="py-6 text-center text-slate-500">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PART B: RAW SQLITE LOGS (LATEST 50) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-white" data-i18n="logsTitle">บันทึกข้อมูลดิบล่าสุดในฐานข้อมูล SQLite (50 แถวล่าสุด)</h2>
+            <p class="text-xs text-slate-400" data-i18n="logsSub">ใช้ตรวจสอบค่าเซนเซอร์รายวินาที หรือดาวน์โหลดข้อมูลดิบทั้งหมดเป็นไฟล์ CSV</p>
+          </div>
+          <a href="/api/logs/export.csv" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2">
+            <i class="fa-solid fa-file-csv"></i>
+            <span data-i18n="btnExportCsv">ดาวน์โหลดข้อมูลดิบทั้งหมด (Raw CSV)</span>
+          </a>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400">
+                <th class="py-2.5 px-3">ID</th>
+                <th class="py-2.5 px-3" data-i18n="colTime">เวลาบันทึก</th>
+                <th class="py-2.5 px-3" data-i18n="colSubject">ผู้ทดสอบ</th>
+                <th class="py-2.5 px-3" data-i18n="colFsr1">FSR1 (ก้นซ้าย)</th>
+                <th class="py-2.5 px-3" data-i18n="colFsr2">FSR2 (ก้นขวา)</th>
+                <th class="py-2.5 px-3" data-i18n="colFsr3">FSR3 (หลังซ้าย)</th>
+                <th class="py-2.5 px-3" data-i18n="colFsr4">FSR4 (หลังขวา)</th>
+                <th class="py-2.5 px-3 text-rose-400">EMG (AD8232)</th>
+                <th class="py-2.5 px-3" data-i18n="colStatus">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="logsTableBody" class="divide-y divide-slate-800/60 tabular-nums">
+              <tr><td colspan="9" class="py-6 text-center text-slate-500">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL 1: RESET SYSTEM & ENTER NEW SUBJECT ==================== -->
+  <div id="resetModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-stopwatch"></i>
+          </div>
+          <h3 class="text-base font-bold text-white" data-i18n="modalTitle">เริ่มเก็บข้อมูลผู้ทดสอบคนใหม่</h3>
+        </div>
+        <button onclick="closeResetModal()" class="text-slate-400 hover:text-white cursor-pointer">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-4" data-i18n="modalDesc">
+        กรอกชื่อผู้เข้าร่วมและเลือกเวลาสังเกตอาการ ระบบจะล้างกราฟเก่า นับถอยหลัง และหยุดบันทึกให้อัตโนมัติเมื่อครบเวลา
+      </p>
+
+      <form onsubmit="submitSubjectForm(event, 'modal')" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1" data-i18n="inputNameLabel">ชื่อ-สกุล หรือ รหัสผู้เข้าร่วม (เช่น P01 - สมชาย ใจดี) *</label>
+          <input type="text" id="modalSubjectInput" required data-i18n-placeholder="phModalSubject" placeholder="เช่น P01 - สมชาย ใจดี"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none text-sm text-white" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1" data-i18n="durationSelectLabel">กำหนดระยะเวลานั่งสังเกตอาการ *</label>
+          <select id="modalDurationSelect" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none text-sm text-white">
+            <option value="0.5" data-i18n="durOpt05">30 วินาที (ทดสอบด่วน / คัดกรองเร็ว)</option>
+            <option value="5" data-i18n="durOpt5">5 นาที (คัดกรองเบื้องต้น / ผู้ป่วยปวดเฉียบพลัน)</option>
+            <option value="10" selected data-i18n="durOpt10">10 นาที (แนะนำ — มาตรฐานประเมินท่านั่งทางคลินิก)</option>
+            <option value="15" data-i18n="durOpt15">15 นาที (สังเกตอาการล้าของกล้ามเนื้อระยะยาว)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1" data-i18n="inputNoteLabel">หมายเหตุ / ท่านั่งที่ทดสอบ</label>
+          <input type="text" id="modalNoteInput" data-i18n-placeholder="phModalNote" placeholder="เช่น นั่งทำงานปกติ"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none text-sm text-white" />
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeResetModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 cursor-pointer" data-i18n="btnCancel">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-play"></i>
+            <span data-i18n="btnConfirmReset">เริ่มจับเวลา & บันทึก</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: SESSION COMPLETED ALERT ==================== -->
+  <div id="completedModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-emerald-500/50 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+      <div class="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 mx-auto mb-4">
+        <i class="fa-solid fa-circle-check text-3xl"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-1" data-i18n="compTitle">เก็บข้อมูลครบกำหนดเวลาแล้ว!</h3>
+      <p id="completedModalMsg" class="text-xs text-slate-300 mb-5">
+        ระบบหยุดบันทึกข้อมูลลง SQLite เรียบร้อยแล้ว เพื่อป้องกันข้อมูลปนกับผู้ทดสอบคนถัดไป
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <button onclick="viewSummaryAfterComplete()" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span data-i18n="btnViewCompSummary">ดูตารางสรุปผลของคนนี้ทันที</span>
+        </button>
+        <button onclick="closeCompletedModalAndNew()" class="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold cursor-pointer" data-i18n="btnNextSubject">
+          กรอกชื่อคนถัดไป
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 py-3 px-4 text-center text-[11px] text-slate-500">
+    LumbarCare Clinical Prototype — Dual-Core FreeRTOS EMG & 4-Channel Pressure Acquisition System
+  </footer>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ---------- 1. I18N DICTIONARY ----------
+    let currentLang = localStorage.getItem('lumbar_lang') || 'th';
+    let hasReceivedSensor = false;
+
+    const i18n = {
+      th: {
+        subtitle: 'ระบบเก็บข้อมูลแรงกด 4 จุด (FSR) และสัญญาณกล้ามเนื้อหลังส่วนล่าง (AD8232 EMG)',
+        btnResetSystem: 'รีเซ็ตระบบ / เปลี่ยนคน',
+        tabMonitor: 'หน้าติดตามผลเรียลไทม์',
+        tabSubject: 'กรอกชื่อ & ตั้งเวลานั่ง',
+        tabSearch: 'ค้นหาประวัติคนไข้',
+        tabLogs: 'สรุปผลรายบุคคล & ฐานข้อมูล SQLite',
+        kpi1Title: 'การกระจายน้ำหนักขณะนั่ง',
+        kpi2Title: 'สัญญาณกล้ามเนื้อหลังล่าง (AD8232)',
+        peakLabel: 'สูงสุด:',
+        btnResetShort: '(รีเซ็ต)',
+        kpi3Title: 'ผู้ที่กำลังเก็บข้อมูลขณะนี้',
+        btnEditName: '[แก้ไข]',
+        kpi4Title: 'เวลาที่เหลือรอบปัจจุบัน',
+        btnStopNow: 'หยุดก่อนเวลา',
+        fsrMapTitle: 'แผนผังแรงกดเบาะผู้ป่วย',
+        lumbarPadLabel: 'พนักพิงหลังส่วนล่าง (LUMBAR PAD)',
+        fsr3Name: 'หลังล่างซ้าย (FSR3)',
+        fsr4Name: 'หลังล่างขวา (FSR4)',
+        seatPadLabel: 'เบาะรองนั่ง (ISCHIAL / SEAT PAD)',
+        fsr1Name: 'ก้นซ้าย (FSR1)',
+        fsr2Name: 'ก้นขวา (FSR2)',
+        seatBalLabel: 'สมดุลก้นซ้าย-ขวา',
+        backBalLabel: 'สมดุลหลังล่างซ้าย-ขวา',
+        emgChartTitle: 'กราฟสัญญาณความตึงกล้ามเนื้อหลังล่าง (เฉพาะ EMG - AD8232)',
+        emgChartSub: 'แสดงผลเฉพาะสัญญาณไฟฟ้ากล้ามเนื้อจาก AD8232 Electrode Pad แบบเรียลไทม์',
+        emgLiveBoxLabel: 'ค่าสัญญาณ EMG ปัจจุบัน & สถานะกล้ามเนื้อ',
+        thresholdLabel: 'เกณฑ์ตัดสินอาการเกร็ง (RMS / ความต่าง):',
+        regPageTitle: 'ลงทะเบียนผู้ที่กำลังเก็บข้อมูล & กำหนดเวลานั่ง',
+        regPageSub: 'แนะนำ 10 นาที สำหรับสังเกตอาการล้าของกล้ามเนื้อหลังและการถ่ายน้ำหนักขณะนั่ง',
+        inputNameLabel: 'ชื่อ-สกุล หรือ รหัสผู้เข้าร่วม (เช่น P01 - สมชาย ใจดี) *',
+        durationSelectLabel: 'กำหนดระยะเวลานั่งเก็บข้อมูล (หยุดบันทึกอัตโนมัติเมื่อครบเวลา) *',
+        inputNoteLabel: 'รายละเอียดเพิ่มเติม / ท่านั่งที่ทดสอบ (ไม่บังคับ)',
+        durOpt05: '30 วินาที (ทดสอบด่วน / คัดกรองเร็ว)',
+        durOpt5: '5 นาที (คัดกรองเบื้องต้น / ผู้ป่วยปวดเฉียบพลัน)',
+        durOpt10: '10 นาที (แนะนำ — มาตรฐานประเมินท่านั่งทางคลินิก)',
+        durOpt15: '15 นาที (สังเกตอาการล้าของกล้ามเนื้อระยะยาว)',
+        phSubjectInput: 'ระบุชื่อหรือรหัสผู้ทดสอบ...',
+        phNoteInput: 'เช่น นั่งทำงานปกติ / พนักพิงระดับ 1',
+        phModalSubject: 'เช่น P01 - สมชาย ใจดี',
+        phModalNote: 'เช่น นั่งทำงานปกติ',
+        phSearchPatient: 'พิมพ์ชื่อคนไข้ที่ต้องการค้นหา เช่น นาย A, ฟ้า, P01...',
+        btnSaveAndReset: 'เริ่มจับเวลา & บันทึกข้อมูลใหม่',
+        btnBackMonitor: 'กลับหน้าติดตามผล',
+        searchTitle: 'ค้นหาประวัติการตรวจและผลสรุปรายบุคคล',
+        searchSub: 'พิมพ์ชื่อหรือรหัสคนไข้ หรือคลิกเลือกรายชื่อด้านล่างเพื่อดูข้อมูลสรุปและบันทึกย้อนหลังทั้งหมด',
+        btnSearchPatient: 'ค้นหาข้อมูล',
+        btnClearSearch: 'ล้างค่า',
+        quickChipsLabel: 'รายชื่อผู้ทดสอบที่มีในฐานข้อมูล (คลิกเพื่อดูข้อมูลทันที):',
+        loadingNames: 'กำลังโหลดรายชื่อ...',
+        searchEmptyTitle: 'กรอกชื่อคนไข้หรือคลิกเลือกรายชื่อด้านบน',
+        searchEmptySub: 'ระบบจะดึงผลสรุปสมดุลแรงกด ค่ากล้ามเนื้อ EMG และประวัติการวัดทั้งหมดของคนไข้รายนั้นขึ้นมาแสดง',
+        searchHistorySub: 'แสดงรายการข้อมูลทั้งหมดที่บันทึกไว้ในฐานข้อมูลของคนไข้รายนี้ (สูงสุด 500 แถวล่าสุด)',
+        btnExportPatientCsv: 'ดาวน์โหลดประวัติคนนี้ (CSV)',
+        summaryTitle: 'สรุปผลการนั่งและสัญญาณกล้ามเนื้อแยกตามรายบุคคล',
+        summarySub: 'คำนวณค่าเฉลี่ยสมดุลแรงกดและเปอร์เซ็นต์อาการเกร็งกล้ามเนื้อตลอดรอบการนั่งของแต่ละคนอัตโนมัติ (คลิกที่ชื่อเพื่อดูประวัติละเอียด)',
+        btnExportSummary: 'ดาวน์โหลดตารางสรุป (CSV)',
+        logsTitle: 'บันทึกข้อมูลดิบล่าสุดในฐานข้อมูล SQLite (50 แถวล่าสุด)',
+        logsSub: 'ใช้ตรวจสอบค่าเซนเซอร์รายวินาที หรือดาวน์โหลดข้อมูลดิบทั้งหมดเป็นไฟล์ CSV',
+        btnRefresh: 'รีเฟรช',
+        btnExportCsv: 'ดาวน์โหลดข้อมูลดิบทั้งหมด (Raw CSV)',
+        thSubject: 'ผู้ทดสอบ (Subject)',
+        thDuration: 'เวลาที่นั่งจริง / เป้าหมาย',
+        thAvgBalance: 'สมดุลก้นเฉลี่ย',
+        thPostureRatio: 'สัดส่วนท่านั่ง (สมดุล / เอียงซ้าย / เอียงขวา)',
+        thAvgFsr: 'แรงกดเฉลี่ย (FSR 1, 2, 3, 4)',
+        thAvgEmg: 'EMG เฉลี่ย / สูงสุด',
+        thStrainPct: 'สัดส่วนกล้ามเนื้อเกร็ง (%)',
+        colTime: 'เวลาบันทึก',
+        colSubject: 'ผู้ทดสอบ',
+        colNote: 'หมายเหตุ',
+        colFsr1: 'FSR1 (ก้นซ้าย)',
+        colFsr2: 'FSR2 (ก้นขวา)',
+        colFsr3: 'FSR3 (หลังซ้าย)',
+        colFsr4: 'FSR4 (หลังขวา)',
+        colStatus: 'สถานะ',
+        modalTitle: 'เริ่มเก็บข้อมูลผู้ทดสอบคนใหม่',
+        modalDesc: 'กรอกชื่อผู้เข้าร่วมและเลือกเวลาสังเกตอาการ ระบบจะล้างกราฟเก่า นับถอยหลัง และหยุดบันทึกให้อัตโนมัติเมื่อครบเวลา',
+        btnCancel: 'ยกเลิก',
+        btnConfirmReset: 'เริ่มจับเวลา & บันทึก',
+        compTitle: 'เก็บข้อมูลครบกำหนดเวลาแล้ว!',
+        btnViewCompSummary: 'ดูตารางสรุปผลของคนนี้ทันที',
+        btnNextSubject: 'กรอกชื่อคนถัดไป',
+        normalState: 'อยู่ในช่วงปกติ (Normal)',
+        strainState: 'กล้ามเนื้อเกร็งตัว (Muscle Strain)',
+        waitSitting: 'รอข้อมูลการนั่ง',
+        balancedSit: 'ลงน้ำหนักซ้าย-ขวาสมดุล',
+        leanLeft: 'ลงน้ำหนักเอียงซ้าย',
+        leanRight: 'ลงน้ำหนักเอียงขวา',
+        noPressure: 'ยังไม่มีแรงกด'
+      },
+      en: {
+        subtitle: '4-Channel Seat/Lumbar Pressure (FSR) & Lower Back EMG (AD8232) Monitor',
+        btnResetSystem: 'Reset System / New Subject',
+        tabMonitor: 'Live Patient Monitoring',
+        tabSubject: 'Subject & Timer Setup',
+        tabSearch: 'Patient Search & History',
+        tabLogs: 'Individual Summary & SQLite Logs',
+        kpi1Title: 'Sitting Weight Distribution',
+        kpi2Title: 'Lower Back Muscle Signal (AD8232)',
+        peakLabel: 'Peak:',
+        btnResetShort: '(Reset)',
+        kpi3Title: 'Active Subject Recording',
+        btnEditName: '[Edit]',
+        kpi4Title: 'Remaining Session Time',
+        btnStopNow: 'Stop Early',
+        fsrMapTitle: 'Seat & Lumbar Pressure Map',
+        lumbarPadLabel: 'LOWER BACK SUPPORT (LUMBAR PAD)',
+        fsr3Name: 'Lower Back Left (FSR3)',
+        fsr4Name: 'Lower Back Right (FSR4)',
+        seatPadLabel: 'SEAT CUSHION (ISCHIAL / SEAT PAD)',
+        fsr1Name: 'Seat Left (FSR1)',
+        fsr2Name: 'Seat Right (FSR2)',
+        seatBalLabel: 'Seat Left-Right Balance',
+        backBalLabel: 'Lumbar Left-Right Balance',
+        emgChartTitle: 'Lower Back Muscle Activity Chart (EMG Only - AD8232)',
+        emgChartSub: 'Real-time electromyography (EMG) waveform from AD8232 electrode pad',
+        emgLiveBoxLabel: 'Live EMG Reading & Muscle Condition',
+        thresholdLabel: 'Strain Threshold (RMS / Deviation):',
+        regPageTitle: 'Participant Registration & Fixed Sitting Timer',
+        regPageSub: '10 minutes is clinically recommended to observe lower back fatigue and weight shifting.',
+        inputNameLabel: 'Participant Name or ID (e.g., P01 - John Doe) *',
+        durationSelectLabel: 'Fixed Observation Duration (Auto-stops when finished) *',
+        inputNoteLabel: 'Session Note / Sitting Posture (Optional)',
+        durOpt05: '30 Seconds (Quick Test / Rapid Screening)',
+        durOpt5: '5 Minutes (Initial Screening / Acute Pain)',
+        durOpt10: '10 Minutes (Recommended — Clinical Standard)',
+        durOpt15: '15 Minutes (Long-Term Muscle Fatigue Observation)',
+        phSubjectInput: 'Enter participant name or ID...',
+        phNoteInput: 'e.g., Normal posture / Backrest level 1',
+        phModalSubject: 'e.g., P01 - John Doe',
+        phModalNote: 'e.g., Normal sitting posture',
+        phSearchPatient: 'Search patient name or ID (e.g., John, P01)...',
+        btnSaveAndReset: 'Start Timer & Record New Session',
+        btnBackMonitor: 'Back to Live Monitor',
+        searchTitle: 'Patient Clinical History Search',
+        searchSub: 'Search by patient name/ID or click a patient chip below to inspect their full clinical summary and logs.',
+        btnSearchPatient: 'Search',
+        btnClearSearch: 'Clear',
+        quickChipsLabel: 'Available Patients in Database (Click to view immediately):',
+        loadingNames: 'Loading patient list...',
+        searchEmptyTitle: 'Enter a patient name or click a chip above',
+        searchEmptySub: 'The system will retrieve aggregated balance scores, EMG activity, and full measurement history.',
+        searchHistorySub: 'Showing all recorded sensor logs for this patient (up to latest 500 rows).',
+        btnExportPatientCsv: 'Export Patient History (CSV)',
+        summaryTitle: 'Individual Participant Clinical Summary',
+        summarySub: 'Automatically aggregated balance percentages and muscle strain ratios per participant (click a name for details).',
+        btnExportSummary: 'Export Summary (CSV)',
+        logsTitle: 'Recent Raw Records in SQLite Database (Latest 50)',
+        logsSub: 'Inspect sensor logs or export the full dataset to CSV.',
+        btnRefresh: 'Refresh',
+        btnExportCsv: 'Download All Raw Data (CSV)',
+        thSubject: 'Subject',
+        thDuration: 'Actual / Target Time',
+        thAvgBalance: 'Avg Seat Balance',
+        thPostureRatio: 'Posture Ratio (Balanced / Left / Right)',
+        thAvgFsr: 'Avg Pressure (FSR 1, 2, 3, 4)',
+        thAvgEmg: 'Avg / Peak EMG',
+        thStrainPct: 'Muscle Strain (%)',
+        colTime: 'Timestamp',
+        colSubject: 'Subject',
+        colNote: 'Note',
+        colFsr1: 'FSR1 (Seat L)',
+        colFsr2: 'FSR2 (Seat R)',
+        colFsr3: 'FSR3 (Back L)',
+        colFsr4: 'FSR4 (Back R)',
+        colStatus: 'Status',
+        modalTitle: 'Start New Participant Session',
+        modalDesc: 'Enter subject name and observation duration. Recording stops automatically when time expires.',
+        btnCancel: 'Cancel',
+        btnConfirmReset: 'Start Timer & Record',
+        compTitle: 'Observation Session Completed!',
+        btnViewCompSummary: 'View Patient Summary Now',
+        btnNextSubject: 'Enter Next Subject',
+        normalState: 'Normal Resting Range',
+        strainState: 'Muscle Contraction / Strain',
+        waitSitting: 'Waiting for Subject',
+        balancedSit: 'Balanced Weight',
+        leanLeft: 'Leaning Left',
+        leanRight: 'Leaning Right',
+        noPressure: 'No Pressure'
+      }
+    };
+
+    function applyLanguage() {
+      const dict = i18n[currentLang];
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (dict[key]) el.setAttribute('placeholder', dict[key]);
+      });
+
+      document.getElementById('langBtnLabel').textContent = currentLang === 'th' ? 'ภาษา: ไทย (TH)' : 'Language: EN';
+
+      if (!hasReceivedSensor) {
+        document.getElementById('postureStatusText').textContent = dict.waitSitting;
+        document.getElementById('postureBalanceSub').textContent =
+          currentLang === 'th' ? 'สมดุลการนั่ง 0.0%' : 'Seat Balance 0.0%';
+        document.getElementById('seatBalText').textContent = `0% · ${dict.noPressure}`;
+        document.getElementById('backBalText').textContent = `0% · ${dict.noPressure}`;
+        document.getElementById('emgStateBadge').textContent = dict.normalState;
+      }
+
+      if (emgChart) {
+        emgChart.data.datasets[0].label = currentLang === 'th'
+          ? 'สัญญาณกล้ามเนื้อหลังล่าง - AD8232 (EMG)'
+          : 'Lower Back Muscle - AD8232 (EMG)';
+        emgChart.update('none');
+      }
+      updateSessionUI();
+      updateCountdownClock();
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'th' ? 'en' : 'th';
+      localStorage.setItem('lumbar_lang', currentLang);
+      applyLanguage();
+
+      if (!document.getElementById('view-search').classList.contains('hidden')) {
+        loadQuickPatientChips();
+        if (lastSearchedName) searchPatientByName(lastSearchedName);
+      }
+      if (!document.getElementById('view-logs').classList.contains('hidden')) {
+        fetchParticipantSummary();
+      }
+    }
+
+    // ---------- 2. SESSION, COUNTDOWN & RECORDING STATE ----------
+    let currentSubject = '';
+    let currentNote = '';
+    let targetMinutes = 10;
+    let isRecording = false;
+    let sessionEndTime = null;
+    let peakEmg = 0;
+    let emgThreshold = Number(localStorage.getItem('lumbar_emg_thresh') || 350);
+    let emgHistoryWindow = [];
+    let cachedSummaryRows = [];
+    let cachedSearchedLogs = [];
+    let lastSearchedName = '';
+
+    function updateSessionUI() {
+      const nameEl = document.getElementById('kpiSubjectName');
+      const noteEl = document.getElementById('kpiSubjectNote');
+      const recBox = document.getElementById('recStatusBox');
+      const recIconBox = document.getElementById('recStatusIconBox');
+      const recIcon = document.getElementById('recStatusIcon');
+      const recTitle = document.getElementById('recStatusTitle');
+      const recSub = document.getElementById('recSubjectSub');
+      const stopBtn = document.getElementById('btnStopNow');
+
+      if (currentSubject) {
+        nameEl.textContent = currentSubject;
+        noteEl.textContent = currentNote || (currentLang === 'th' ? `กำหนดเวลา ${targetMinutes} นาที` : `Target ${targetMinutes} min`);
+      } else {
+        nameEl.textContent = currentLang === 'th' ? 'ยังไม่ระบุชื่อผู้ทดสอบ' : 'No Subject Set';
+        noteEl.textContent = currentLang === 'th' ? 'คลิกเพื่อกรอกชื่อผู้ทดสอบ' : 'Click to enter subject name';
+      }
+
+      if (isRecording) {
+        recBox.className = 'rounded-xl bg-emerald-950/30 border border-emerald-500/40 p-3.5 flex items-center gap-3';
+        recIconBox.className = 'w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0';
+        recIcon.className = 'fa-solid fa-circle-dot animate-pulse';
+        recTitle.className = 'text-xs font-bold text-emerald-400';
+        recTitle.textContent = currentLang === 'th' ? 'สถานะการเก็บข้อมูล: RECORDING' : 'Status: RECORDING';
+        recSub.textContent = currentLang === 'th'
+          ? `กำลังบันทึกของ: ${currentSubject} (หยุดอัตโนมัติเมื่อครบ ${targetMinutes} นาที)`
+          : `Recording: ${currentSubject} (Auto-stops at ${targetMinutes} min)`;
+        stopBtn.classList.remove('hidden');
+      } else {
+        recBox.className = 'rounded-xl bg-slate-800/60 border border-slate-700 p-3.5 flex items-center gap-3';
+        recIconBox.className = 'w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 shrink-0';
+        recIcon.className = 'fa-solid fa-pause';
+        recTitle.className = 'text-xs font-bold text-slate-300';
+        recTitle.textContent = currentLang === 'th' ? 'สถานะการเก็บข้อมูล: STANDBY (หยุดบันทึก)' : 'Status: STANDBY (Not Recording)';
+        recSub.textContent = currentLang === 'th'
+          ? 'กด "รีเซ็ตระบบ / เปลี่ยนคน" เพื่อเริ่มจับเวลาคนถัดไป'
+          : 'Click "Reset System / New Subject" to start next session';
+        stopBtn.classList.add('hidden');
+      }
+
+      document.getElementById('thresholdValDisplay').textContent = `${emgThreshold} ADC`;
+    }
+
+    function updateCountdownClock() {
+      const countdownEl = document.getElementById('kpiCountdownText');
+      const progressEl = document.getElementById('timerProgressBar');
+      const subEl = document.getElementById('kpiTimerSub');
+
+      if (!isRecording || !sessionEndTime) {
+        countdownEl.textContent = currentLang === 'th' ? `00:00 / ${targetMinutes} นาที` : `00:00 / ${targetMinutes} min`;
+        countdownEl.className = 'text-xl sm:text-2xl font-bold text-slate-400 tabular-nums';
+        progressEl.style.width = '0%';
+        subEl.textContent = currentLang === 'th' ? 'ไม่ได้กำลังบันทึกข้อมูลลงฐานข้อมูล' : 'Recording paused / completed';
+        return;
+      }
+
+      const totalMs = targetMinutes * 60 * 1000;
+      const remainingMs = Math.max(0, sessionEndTime - Date.now());
+      const remSec = Math.ceil(remainingMs / 1000);
+      const mm = String(Math.floor(remSec / 60)).padStart(2, '0');
+      const ss = String(remSec % 60).padStart(2, '0');
+      const pct = Math.max(0, Math.min(100, (remainingMs / totalMs) * 100));
+
+      countdownEl.textContent = currentLang === 'th' ? `${mm}:${ss} นาที` : `${mm}:${ss} min`;
+      countdownEl.className = remSec <= 30
+        ? 'text-xl sm:text-2xl font-bold text-amber-400 tabular-nums'
+        : 'text-xl sm:text-2xl font-bold text-indigo-300 tabular-nums';
+      progressEl.style.width = `${pct}%`;
+      subEl.textContent = currentLang === 'th'
+        ? `เป้าหมาย ${targetMinutes} นาที · บันทึกทุก 10 วินาที`
+        : `Target ${targetMinutes} min · Auto-stops at 00:00`;
+    }
+
+    function openResetModal() {
+      document.getElementById('modalSubjectInput').value = '';
+      document.getElementById('modalNoteInput').value = '';
+      document.getElementById('modalDurationSelect').value = String(targetMinutes || 10);
+      document.getElementById('resetModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('modalSubjectInput').focus(), 50);
+    }
+
+    function closeResetModal() {
+      document.getElementById('resetModal').classList.add('hidden');
+    }
+
+    function submitSubjectForm(e, source) {
+      e.preventDefault();
+      const nameInput = source === 'modal'
+        ? document.getElementById('modalSubjectInput').value
+        : document.getElementById('pageSubjectInput').value;
+      const noteInput = source === 'modal'
+        ? document.getElementById('modalNoteInput').value
+        : document.getElementById('pageNoteInput').value;
+      const durInput = source === 'modal'
+        ? document.getElementById('modalDurationSelect').value
+        : document.getElementById('pageDurationSelect').value;
+
+      if (!nameInput.trim()) return;
+
+      peakEmg = 0;
+      emgHistoryWindow = [];
+      document.getElementById('kpiEmgPeak').textContent = '0 ADC';
+      if (emgChart) {
+        emgChart.data.labels = [];
+        emgChart.data.datasets[0].data = [];
+        emgChart.update();
+      }
+
+      fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participantName: nameInput.trim(),
+          note: noteInput.trim(),
+          durationMinutes: Number(durInput) || 10
+        })
+      })
+        .then((r) => r.json())
+        .then((state) => {
+          syncSessionFromServer(state);
+          if (source === 'modal') closeResetModal();
+          else switchTab('monitor');
+        })
+        .catch(() => {});
+    }
+
+    function stopRecordingEarly() {
+      fetch('/api/session/stop', { method: 'POST' })
+        .then((r) => r.json())
+        .then((state) => syncSessionFromServer(state))
+        .catch(() => {});
+    }
+
+    function syncSessionFromServer(state) {
+      if (!state) return;
+      currentSubject = state.participantName || '';
+      currentNote = state.note || '';
+      targetMinutes = state.targetMinutes || 10;
+      isRecording = Boolean(state.isRecording);
+      sessionEndTime = state.sessionEndTime || null;
+      updateSessionUI();
+      updateCountdownClock();
+    }
+
+    function viewSummaryAfterComplete() {
+      document.getElementById('completedModal').classList.add('hidden');
+      if (currentSubject) {
+        openPatientSearch(currentSubject);
+      } else {
+        switchTab('logs');
+      }
+    }
+
+    function closeCompletedModalAndNew() {
+      document.getElementById('completedModal').classList.add('hidden');
+      openResetModal();
+    }
+
+    function resetPeakOnly() {
+      peakEmg = 0;
+      document.getElementById('kpiEmgPeak').textContent = '0 ADC';
+    }
+
+    function adjustThreshold(delta) {
+      emgThreshold = Math.max(5, Math.min(2000, emgThreshold + delta));
+      localStorage.setItem('lumbar_emg_thresh', emgThreshold);
+      document.getElementById('thresholdValDisplay').textContent = `${emgThreshold} ADC`;
+    }
+
+    // ---------- 3. TABS & DARK/LIGHT THEME ----------
+    function switchTab(tab) {
+      ['monitor', 'subject', 'search', 'logs'].forEach((t) => {
+        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tab) {
+          btn.classList.add('border-emerald-400', 'text-emerald-400');
+          btn.classList.remove('border-transparent', 'text-slate-400');
+        } else {
+          btn.classList.remove('border-emerald-400', 'text-emerald-400');
+          btn.classList.add('border-transparent', 'text-slate-400');
+        }
+      });
+      if (tab === 'subject') {
+        document.getElementById('pageSubjectInput').value = currentSubject;
+        document.getElementById('pageNoteInput').value = currentNote;
+        document.getElementById('pageDurationSelect').value = String(targetMinutes || 10);
+      }
+      if (tab === 'search') {
+        loadQuickPatientChips();
+        setTimeout(() => document.getElementById('patientSearchInput').focus(), 50);
+      }
+      if (tab === 'logs') {
+        fetchParticipantSummary();
+        fetchDatabaseLogs();
+      }
+    }
+
+    function applyTheme(isDark) {
+      const html = document.documentElement;
+      const icon = document.getElementById('themeIcon');
+      if (isDark) {
+        html.classList.add('dark');
+        icon.className = 'fa-solid fa-moon text-sm text-sky-300';
+      } else {
+        html.classList.remove('dark');
+        icon.className = 'fa-solid fa-sun text-sm text-amber-500';
+      }
+
+      if (emgChart) {
+        emgChart.options.plugins.legend.labels.color = isDark ? '#cbd5e1' : '#334155';
+        emgChart.options.scales.x.grid.color = isDark ? 'rgba(148, 163, 184, 0.08)' : 'rgba(15, 23, 42, 0.08)';
+        emgChart.options.scales.y.grid.color = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(15, 23, 42, 0.1)';
+        emgChart.options.scales.x.ticks.color = isDark ? '#64748b' : '#475569';
+        emgChart.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#475569';
+        emgChart.options.scales.y.title.color = isDark ? '#94a3b8' : '#475569';
+        emgChart.update('none');
+      }
+    }
+
+    function toggleTheme() {
+      const isCurrentlyDark = document.documentElement.classList.contains('dark');
+      const nextIsDark = !isCurrentlyDark;
+      localStorage.setItem('lumbar_theme', nextIsDark ? 'dark' : 'light');
+      applyTheme(nextIsDark);
+    }
+
+    // ---------- 4. PATIENT SEARCH & HISTORY ----------
+    function loadQuickPatientChips() {
+      const rowUnit = currentLang === 'th' ? 'แถว' : 'rows';
+      const emptyMsg = currentLang === 'th' ? 'ยังไม่มีข้อมูลผู้ทดสอบในระบบ' : 'No patients found in database';
+
+      fetch(`/api/summary/participants?threshold=${emgThreshold}`)
+        .then((r) => r.json())
+        .then((rows) => {
+          const container = document.getElementById('quickPatientChips');
+          if (!rows.length) {
+            container.innerHTML = `<span class="text-xs text-slate-500">${emptyMsg}</span>`;
+            return;
+          }
+          container.innerHTML = rows.map((r) => `
+            <button type="button" data-name="${escapeHtml(r.participant_name)}" onclick="searchPatientByName(this.dataset.name)"
+              class="px-3 py-1 rounded-full text-xs font-medium bg-slate-800 hover:bg-sky-500/20 border border-slate-700 hover:border-sky-400 text-slate-200 hover:text-sky-300 transition cursor-pointer flex items-center gap-1.5">
+              <i class="fa-solid fa-user text-[10px] text-sky-400"></i>
+              <span>${escapeHtml(r.participant_name)}</span>
+              <span class="text-[10px] text-slate-400">(${r.total_samples} ${rowUnit})</span>
+            </button>
+          `).join('');
+        })
+        .catch(() => {});
+    }
+
+    function openPatientSearch(name) {
+      switchTab('search');
+      searchPatientByName(name);
+    }
+
+    function handlePatientSearchSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('patientSearchInput').value.trim();
+      if (!name) return;
+      searchPatientByName(name);
+    }
+
+    function clearPatientSearch() {
+      document.getElementById('patientSearchInput').value = '';
+      document.getElementById('patientSearchResults').classList.add('hidden');
+      document.getElementById('patientSearchEmptyState').classList.remove('hidden');
+      cachedSearchedLogs = [];
+      lastSearchedName = '';
+    }
+
+    function searchPatientByName(name) {
+      const cleanName = String(name || '').trim();
+      if (!cleanName) return;
+      document.getElementById('patientSearchInput').value = cleanName;
+      lastSearchedName = cleanName;
+
+      const isTh = currentLang === 'th';
+
+      fetch(`/api/patient/search?name=${encodeURIComponent(cleanName)}&threshold=${emgThreshold}`)
+        .then((r) => r.json())
+        .then((data) => {
+          const summaries = data.summaries || [];
+          const logs = data.logs || [];
+          cachedSearchedLogs = logs;
+
+          document.getElementById('patientSearchEmptyState').classList.add('hidden');
+          document.getElementById('patientSearchResults').classList.remove('hidden');
+
+          const cardsEl = document.getElementById('searchSummaryCards');
+          if (!summaries.length) {
+            cardsEl.innerHTML = `
+              <div class="bg-slate-900 border border-rose-500/30 rounded-2xl p-6 text-center">
+                <p class="text-sm font-bold text-rose-400">${isTh ? `ไม่พบข้อมูลของ "${escapeHtml(cleanName)}" ในฐานข้อมูล` : `No records found for "${escapeHtml(cleanName)}"`}</p>
+                <p class="text-xs text-slate-400 mt-1">${isTh ? 'ลองพิมพ์เฉพาะบางส่วนของชื่อ หรือคลิกเลือกจากรายชื่อป้ายด้านบน' : 'Try searching a partial name or click one of the patient chips above.'}</p>
+              </div>
+            `;
+            document.getElementById('searchHistoryTitle').textContent = isTh
+              ? `ประวัติการตรวจของ "${cleanName}" (0 รายการ)`
+              : `Clinical History for "${cleanName}" (0 records)`;
+            document.getElementById('searchLogsTableBody').innerHTML =
+              `<tr><td colspan="10" class="py-6 text-center text-slate-500">${isTh ? 'ไม่พบรายการบันทึก' : 'No records found'}</td></tr>`;
+            return;
+          }
+
+          cardsEl.innerHTML = summaries.map((r) => `
+            <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 shadow-lg space-y-4">
+              <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-semibold">
+                      ${isTh ? 'ข้อมูลคนไข้' : 'Patient Record'}
+                    </span>
+                    <h3 class="text-lg sm:text-xl font-bold text-white">${escapeHtml(r.participant_name)}</h3>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">
+                    ${isTh ? 'หมายเหตุ:' : 'Note:'} <span class="text-slate-200">${escapeHtml(r.session_note || '-')}</span> ·
+                    ${isTh ? 'ช่วงเวลาที่บันทึก:' : 'Recorded:'} <span class="text-slate-300">${escapeHtml(r.started_at || '-')} ${isTh ? 'ถึง' : 'to'} ${escapeHtml(r.ended_at || '-')}</span>
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs text-slate-400">${isTh ? 'ระยะเวลาเก็บข้อมูลรวม' : 'Total Recorded Duration'}</p>
+                  <p class="text-base font-bold text-emerald-400 tabular-nums">
+                    ${r.actual_minutes} ${isTh ? 'นาที' : 'min'}
+                    <span class="text-xs font-normal text-slate-400">(${r.total_samples.toLocaleString()} ${isTh ? 'แถว' : 'rows'})</span>
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs tabular-nums">
+                <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-3.5">
+                  <p class="text-slate-400 mb-1">${isTh ? 'สมดุลการนั่งเฉลี่ย' : 'Avg Sitting Balance'}</p>
+                  <p class="text-xl font-bold ${r.avg_seat_balance >= 75 ? 'text-emerald-400' : 'text-amber-400'}">${r.avg_seat_balance}%</p>
+                  <p class="text-[11px] text-slate-400 mt-1">
+                    ${isTh
+                      ? `สมดุล ${r.balanced_pct}% · ซ้าย ${r.lean_left_pct}% · ขวา ${r.lean_right_pct}%`
+                      : `Bal ${r.balanced_pct}% · Left ${r.lean_left_pct}% · Right ${r.lean_right_pct}%`}
+                  </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-3.5">
+                  <p class="text-slate-400 mb-1">${isTh ? 'แรงกดเบาะรองนั่งเฉลี่ย (ก้น)' : 'Avg Seat Pressure (Ischial)'}</p>
+                  <p class="text-sm font-bold text-white mt-1">${isTh ? 'ซ้าย (FSR1):' : 'Left (FSR1):'} <span class="text-sky-300">${r.avg_fsr1}</span></p>
+                  <p class="text-sm font-bold text-white">${isTh ? 'ขวา (FSR2):' : 'Right (FSR2):'} <span class="text-sky-300">${r.avg_fsr2}</span></p>
+                </div>
+
+                <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-3.5">
+                  <p class="text-slate-400 mb-1">${isTh ? 'แรงกดพนักพิงเฉลี่ย (หลังล่าง)' : 'Avg Back Pressure (Lumbar)'}</p>
+                  <p class="text-sm font-bold text-white mt-1">${isTh ? 'ซ้าย (FSR3):' : 'Left (FSR3):'} <span class="text-indigo-300">${r.avg_fsr3}</span></p>
+                  <p class="text-sm font-bold text-white">${isTh ? 'ขวา (FSR4):' : 'Right (FSR4):'} <span class="text-indigo-300">${r.avg_fsr4}</span></p>
+                </div>
+
+                <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-3.5">
+                  <p class="text-slate-400 mb-1">${isTh ? 'สัญญาณกล้ามเนื้อ (AD8232 EMG)' : 'Muscle Signal (AD8232 EMG)'}</p>
+                  <p class="text-base font-bold text-rose-400">
+                    ${isTh ? 'เฉลี่ย' : 'Avg'} ${r.avg_emg}
+                    <span class="text-xs text-slate-400 font-normal">/ ${isTh ? 'สูงสุด' : 'Peak'} ${r.peak_emg}</span>
+                  </p>
+                  <p class="text-[11px] mt-1 font-semibold ${r.strain_pct > 30 ? 'text-rose-300' : 'text-emerald-400'}">
+                    ${isTh ? `สัดส่วนกล้ามเนื้อเกร็ง: ${r.strain_pct}%` : `Muscle Strain Ratio: ${r.strain_pct}%`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          `).join('');
+
+          document.getElementById('searchHistoryTitle').textContent = isTh
+            ? `ประวัติการตรวจย้อนหลังของ "${cleanName}" (${logs.length.toLocaleString()} รายการ)`
+            : `Clinical History for "${cleanName}" (${logs.length.toLocaleString()} records)`;
+
+          document.getElementById('searchLogsTableBody').innerHTML = logs.map((r) => `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-2 px-3 text-slate-400">${r.id}</td>
+              <td class="py-2 px-3">${escapeHtml(r.created_at || '-')}</td>
+              <td class="py-2 px-3 text-sky-400 font-medium">${escapeHtml(r.participant_name || '-')}</td>
+              <td class="py-2 px-3 text-slate-400">${escapeHtml(r.session_note || '-')}</td>
+              <td class="py-2 px-3">${r.fsr_seat_l}</td>
+              <td class="py-2 px-3">${r.fsr_seat_r}</td>
+              <td class="py-2 px-3">${r.fsr_back_l}</td>
+              <td class="py-2 px-3">${r.fsr_back_r}</td>
+              <td class="py-2 px-3 text-rose-400 font-semibold">${r.ad8232_raw}</td>
+              <td class="py-2 px-3">${escapeHtml(r.status)}</td>
+            </tr>
+          `).join('');
+        })
+        .catch(() => {});
+    }
+
+    function exportSearchedPatientCsv() {
+      if (!cachedSearchedLogs.length) return;
+      const headers = [
+        'id', 'created_at', 'participant_name', 'session_note',
+        'fsr_seat_l', 'fsr_seat_r', 'fsr_back_l', 'fsr_back_r', 'ad8232_raw', 'status'
+      ];
+      const csvRows = [
+        headers.join(','),
+        ...cachedSearchedLogs.map((r) => [
+          r.id,
+          `"${(r.created_at || '').replace(/"/g, '""')}"`,
+          `"${(r.participant_name || '').replace(/"/g, '""')}"`,
+          `"${(r.session_note || '').replace(/"/g, '""')}"`,
+          r.fsr_seat_l, r.fsr_seat_r, r.fsr_back_l, r.fsr_back_r, r.ad8232_raw,
+          `"${(r.status || '').replace(/"/g, '""')}"`
+        ].join(','))
+      ].join('\n');
+
+      const safeFile = (lastSearchedName || 'patient').replace(/[^a-zA-Z0-9ก-๙_-]/g, '_');
+      const blob = new Blob(['\uFEFF' + csvRows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `patient_${safeFile}_history.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ---------- 5. EMG-ONLY CHART ----------
+    let emgChart;
+    function initEmgOnlyChart() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const ctx = document.getElementById('emgOnlyChart').getContext('2d');
+      emgChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'สัญญาณกล้ามเนื้อหลังล่าง - AD8232 (EMG)',
+            data: [],
+            borderColor: '#f43f5e',
+            backgroundColor: 'rgba(244, 63, 94, 0.12)',
+            borderWidth: 2.5,
+            tension: 0.25,
+            pointRadius: 0,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              labels: { color: isDark ? '#cbd5e1' : '#334155', font: { size: 12, family: 'Prompt, Inter' } }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: isDark ? 'rgba(148, 163, 184, 0.08)' : 'rgba(15, 23, 42, 0.08)' },
+              ticks: { color: isDark ? '#64748b' : '#475569', maxTicksLimit: 8, font: { size: 11 } }
+            },
+            y: {
+              min: 0,
+              max: 4095,
+              grid: { color: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(15, 23, 42, 0.1)' },
+              ticks: { color: isDark ? '#94a3b8' : '#475569', stepSize: 500, font: { size: 11 } },
+              title: { display: true, text: 'AD8232 EMG (0–4095 ADC)', color: isDark ? '#94a3b8' : '#475569', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ---------- 6. REAL-TIME SENSOR UI UPDATE ----------
+    function updateSensorUI(data) {
+      hasReceivedSensor = true;
+      const { fsrSeatL = 0, fsrSeatR = 0, fsrBackL = 0, fsrBackR = 0, ad8232Raw = 0 } = data;
+      const dict = i18n[currentLang];
+
+      const seatSum = fsrSeatL + fsrSeatR;
+      const backSum = fsrBackL + fsrBackR;
+
+      document.getElementById('val-fsr1').textContent = `${Math.round(fsrSeatL).toLocaleString()} ADC`;
+      document.getElementById('pct-fsr1').textContent = seatSum > 0 ? `${Math.round((fsrSeatL / seatSum) * 100)}%` : '0%';
+
+      document.getElementById('val-fsr2').textContent = `${Math.round(fsrSeatR).toLocaleString()} ADC`;
+      document.getElementById('pct-fsr2').textContent = seatSum > 0 ? `${Math.round((fsrSeatR / seatSum) * 100)}%` : '0%';
+
+      document.getElementById('val-fsr3').textContent = `${Math.round(fsrBackL).toLocaleString()} ADC`;
+      document.getElementById('pct-fsr3').textContent = backSum > 0 ? `${Math.round((fsrBackL / backSum) * 100)}%` : '0%';
+
+      document.getElementById('val-fsr4').textContent = `${Math.round(fsrBackR).toLocaleString()} ADC`;
+      document.getElementById('pct-fsr4').textContent = backSum > 0 ? `${Math.round((fsrBackR / backSum) * 100)}%` : '0%';
+
+      highlightPad('box-fsr1', fsrSeatL);
+      highlightPad('box-fsr2', fsrSeatR);
+      highlightPad('box-fsr3', fsrBackL);
+      highlightPad('box-fsr4', fsrBackR);
+
+      if (seatSum >= 300) {
+        const diff = Math.abs(fsrSeatL - fsrSeatR);
+        const bal = Math.max(0, Math.round(100 * (1 - diff / seatSum)));
+        const imbalancePct = 100 - bal;
+        const sideLabel = imbalancePct <= 25
+          ? dict.balancedSit
+          : (fsrSeatL > fsrSeatR ? dict.leanLeft : dict.leanRight);
+
+        document.getElementById('postureStatusText').textContent = sideLabel;
+        document.getElementById('postureStatusText').className = imbalancePct <= 25
+          ? 'text-lg sm:text-xl font-bold text-emerald-400 tabular-nums'
+          : 'text-lg sm:text-xl font-bold text-amber-400 tabular-nums';
+        document.getElementById('postureBalanceSub').textContent =
+          (currentLang === 'th' ? `สมดุลการนั่ง ${bal}%` : `Seat Balance ${bal}%`);
+        document.getElementById('seatBalText').textContent = `${bal}% · ${sideLabel}`;
+      } else {
+        document.getElementById('postureStatusText').textContent = dict.waitSitting;
+        document.getElementById('postureStatusText').className = 'text-lg sm:text-xl font-bold text-slate-300 tabular-nums';
+        document.getElementById('postureBalanceSub').textContent = dict.noPressure;
+        document.getElementById('seatBalText').textContent = `0% · ${dict.noPressure}`;
+      }
+
+      if (backSum >= 200) {
+        const bDiff = Math.abs(fsrBackL - fsrBackR);
+        const bBal = Math.max(0, Math.round(100 * (1 - bDiff / backSum)));
+        document.getElementById('backBalText').textContent = `${bBal}% · diff ${Math.round(bDiff)}`;
+      } else {
+        document.getElementById('backBalText').textContent = `0% · ${dict.noPressure}`;
+      }
+
+      const emgVal = Math.round(Number(ad8232Raw) || 0);
+      if (emgVal > peakEmg) {
+        peakEmg = emgVal;
+        document.getElementById('kpiEmgPeak').textContent = `${peakEmg.toLocaleString()} ADC`;
+      }
+      document.getElementById('kpiEmgVal').textContent = `${emgVal.toLocaleString()} ADC`;
+      document.getElementById('emgBoxNumeric').textContent = `${emgVal.toLocaleString()} ADC`;
+
+      emgHistoryWindow.push(emgVal);
+      if (emgHistoryWindow.length > 20) emgHistoryWindow.shift();
+      const sorted = [...emgHistoryWindow].sort((a, b) => a - b);
+      const medianBaseline = sorted[Math.floor(sorted.length / 2)] || 0;
+      const activityMetric = medianBaseline > 800 ? Math.abs(emgVal - medianBaseline) : emgVal;
+
+      const isStrain = activityMetric >= emgThreshold;
+      const condCard = document.getElementById('emgConditionCard');
+      const iconBox = document.getElementById('emgStateIconBox');
+      const icon = document.getElementById('emgStateIcon');
+      const badge = document.getElementById('emgStateBadge');
+
+      if (isStrain) {
+        condCard.className = 'mt-4 rounded-2xl border border-rose-500/50 bg-rose-950/30 p-4 transition-all duration-200';
+        iconBox.className = 'w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0';
+        icon.className = 'fa-solid fa-triangle-exclamation text-xl';
+        badge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40';
+        badge.textContent = dict.strainState;
+      } else {
+        condCard.className = 'mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-950/25 p-4 transition-all duration-200';
+        iconBox.className = 'w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0';
+        icon.className = 'fa-solid fa-circle-check text-xl';
+        badge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        badge.textContent = dict.normalState;
+      }
+
+      const nowLabel = new Date().toTimeString().slice(0, 8);
+      emgChart.data.labels.push(nowLabel);
+      emgChart.data.datasets[0].data.push(emgVal);
+      if (emgChart.data.labels.length > 60) {
+        emgChart.data.labels.shift();
+        emgChart.data.datasets[0].data.shift();
+      }
+      emgChart.update('none');
+    }
+
+    function highlightPad(id, val) {
+      const el = document.getElementById(id);
+      if (val >= 3500) el.className = 'rounded-xl bg-rose-950/40 border border-rose-500/50 p-3.5 text-center transition-colors';
+      else if (val >= 400) el.className = 'rounded-xl bg-amber-950/35 border border-amber-500/40 p-3.5 text-center transition-colors';
+      else el.className = 'rounded-xl bg-slate-800/70 border border-slate-700/80 p-3.5 text-center transition-colors';
+    }
+
+    // ---------- 7. SUMMARY & LOGS FETCHING ----------
+    function fetchParticipantSummary() {
+      const isTh = currentLang === 'th';
+
+      fetch(`/api/summary/participants?threshold=${emgThreshold}`)
+        .then((r) => r.json())
+        .then((rows) => {
+          cachedSummaryRows = rows;
+          const tbody = document.getElementById('summaryTableBody');
+          if (!rows.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500">${isTh ? 'ยังไม่มีข้อมูลสรุปผล' : 'No summary records yet'}</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = rows.map((r) => `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-3 px-3">
+                <button type="button" data-name="${escapeHtml(r.participant_name)}" onclick="openPatientSearch(this.dataset.name)" class="font-bold text-sky-400 hover:underline text-left cursor-pointer">
+                  ${escapeHtml(r.participant_name)} <i class="fa-solid fa-magnifying-glass text-[10px] ml-1 opacity-70"></i>
+                </button>
+                <p class="text-[11px] text-slate-400">${escapeHtml(r.session_note || '-')}</p>
+              </td>
+              <td class="py-3 px-3">
+                <span class="font-semibold text-white">${r.actual_minutes} ${isTh ? 'นาที' : 'min'}</span>
+                <span class="text-slate-400"> / ${r.target_minutes} ${isTh ? 'นาที' : 'min'}</span>
+                <p class="text-[10px] text-slate-500">(${r.total_samples.toLocaleString()} ${isTh ? 'แถว' : 'rows'})</p>
+              </td>
+              <td class="py-3 px-3">
+                <span class="px-2.5 py-1 rounded-full font-bold ${r.avg_seat_balance >= 75 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                  ${r.avg_seat_balance}%
+                </span>
+              </td>
+              <td class="py-3 px-3 text-[11px]">
+                ${isTh
+                  ? `<span class="text-emerald-400">สมดุล ${r.balanced_pct}%</span> · <span class="text-amber-300">ซ้าย ${r.lean_left_pct}%</span> · <span class="text-sky-300">ขวา ${r.lean_right_pct}%</span>`
+                  : `<span class="text-emerald-400">Bal ${r.balanced_pct}%</span> · <span class="text-amber-300">Left ${r.lean_left_pct}%</span> · <span class="text-sky-300">Right ${r.lean_right_pct}%</span>`}
+              </td>
+              <td class="py-3 px-3 text-slate-300">
+                ${r.avg_fsr1}, ${r.avg_fsr2}, ${r.avg_fsr3}, ${r.avg_fsr4}
+              </td>
+              <td class="py-3 px-3">
+                <span class="text-rose-400 font-bold">${r.avg_emg}</span>
+                <span class="text-slate-400"> / ${isTh ? 'สูงสุด' : 'Peak'} ${r.peak_emg}</span>
+              </td>
+              <td class="py-3 px-3">
+                <span class="px-2.5 py-1 rounded-full font-bold ${r.strain_pct > 30 ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-300'}">
+                  ${r.strain_pct}%
+                </span>
+              </td>
+            </tr>
+          `).join('');
+        })
+        .catch(() => {});
+    }
+
+    function exportSummaryCsv() {
+      if (!cachedSummaryRows.length) return;
+      const headers = [
+        'participant_name', 'session_note', 'actual_minutes', 'target_minutes', 'total_samples',
+        'avg_seat_balance_pct', 'balanced_pct', 'lean_left_pct', 'lean_right_pct',
+        'avg_fsr1_seat_l', 'avg_fsr2_seat_r', 'avg_fsr3_back_l', 'avg_fsr4_back_r',
+        'avg_emg', 'peak_emg', 'muscle_strain_pct'
+      ];
+      const csvRows = [
+        headers.join(','),
+        ...cachedSummaryRows.map((r) => [
+          `"${(r.participant_name || '').replace(/"/g, '""')}"`,
+          `"${(r.session_note || '').replace(/"/g, '""')}"`,
+          r.actual_minutes, r.target_minutes, r.total_samples,
+          r.avg_seat_balance, r.balanced_pct, r.lean_left_pct, r.lean_right_pct,
+          r.avg_fsr1, r.avg_fsr2, r.avg_fsr3, r.avg_fsr4,
+          r.avg_emg, r.peak_emg, r.strain_pct
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob(['\uFEFF' + csvRows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'lumbar_participant_summary.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function fetchDatabaseLogs() {
+      const isTh = currentLang === 'th';
+
+      fetch('/api/logs/latest?limit=50')
+        .then((r) => r.json())
+        .then((rows) => {
+          const tbody = document.getElementById('logsTableBody');
+          if (!rows.length) {
+            tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-500">${isTh ? 'ยังไม่มีข้อมูลในฐานข้อมูล' : 'No records in database'}</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = rows.map((r) => `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-2 px-3 text-slate-400">${r.id}</td>
+              <td class="py-2 px-3">${escapeHtml(r.created_at || '-')}</td>
+              <td class="py-2 px-3 text-sky-400 font-medium">${escapeHtml(r.participant_name || '-')}</td>
+              <td class="py-2 px-3">${r.fsr_seat_l}</td>
+              <td class="py-2 px-3">${r.fsr_seat_r}</td>
+              <td class="py-2 px-3">${r.fsr_back_l}</td>
+              <td class="py-2 px-3">${r.fsr_back_r}</td>
+              <td class="py-2 px-3 text-rose-400 font-semibold">${r.ad8232_raw}</td>
+              <td class="py-2 px-3">${escapeHtml(r.status)}</td>
+            </tr>
+          `).join('');
+        })
+        .catch(() => {});
+    }
+
+    // ---------- 8. WEBSOCKET & BOOT ----------
+    function setConnection(connected, portName) {
+      const dot = document.getElementById('connDot');
+      const txt = document.getElementById('connText');
+      if (connected) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        txt.textContent = `ESP32 Connected (${portName || 'Active'})`;
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        txt.textContent = 'ESP32 Disconnected';
+      }
+    }
+
+    function connectWebSocket() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${proto}//${location.host}`);
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'sensor') updateSensorUI(msg);
+          if (msg.type === 'server_status') setConnection(Boolean(msg.serialConnected), msg.serialPort);
+          if (msg.type === 'session_state') syncSessionFromServer(msg);
+          if (msg.type === 'session_completed') {
+            document.getElementById('completedModalMsg').textContent = currentLang === 'th'
+              ? `เก็บข้อมูลของ "${msg.participantName}" ครบ ${msg.targetMinutes} นาทีเรียบร้อยแล้ว ระบบหยุดบันทึกลง SQLite อัตโนมัติ`
+              : `Recorded "${msg.participantName}" for ${msg.targetMinutes} min. Recording has stopped automatically.`;
+            document.getElementById('completedModal').classList.remove('hidden');
+          }
+        } catch (e) {}
+      };
+      ws.onclose = () => setTimeout(connectWebSocket, 2000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('lumbar_theme') || 'dark';
+      applyTheme(savedTheme === 'dark');
+      initEmgOnlyChart();
+      applyLanguage();
+      connectWebSocket();
+      setInterval(updateCountdownClock, 500);
+
+      fetch('/api/status')
+        .then((r) => r.json())
+        .then((s) => {
+          setConnection(Boolean(s.serialConnected), s.serialPort);
+          syncSessionFromServer(s);
+          if (!s.participantName) openResetModal();
+        })
+        .catch(() => openResetModal());
+    });
+  </script>
+</body>
+</html>
